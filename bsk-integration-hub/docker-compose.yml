@@ -1,0 +1,77 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bsk
+      POSTGRES_PASSWORD: bsk
+      POSTGRES_DB: bsk
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bsk"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DRY_RUN: ${DRY_RUN:-true}
+      USE_MOCK_CONNECTORS: ${USE_MOCK_CONNECTORS:-true}
+      ALLOW_REAL_API: ${ALLOW_REAL_API:-false}
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-change-me-please-generate-a-long-random-token}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8000}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://bsk:bsk@postgres:5432/bsk}
+      QUEUE_BACKEND: redis
+      REDIS_URL: redis://redis:6379/0
+      APPROVAL_REQUIRED_FOR: ${APPROVAL_REQUIRED_FOR:-order_delete,invoice_void}
+    ports:
+      - "8000:8000"
+    command: >
+      uvicorn src.main:app --host 0.0.0.0 --port 8000
+
+  worker:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DRY_RUN: ${DRY_RUN:-true}
+      USE_MOCK_CONNECTORS: ${USE_MOCK_CONNECTORS:-true}
+      ALLOW_REAL_API: ${ALLOW_REAL_API:-false}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://bsk:bsk@postgres:5432/bsk}
+      QUEUE_BACKEND: redis
+      REDIS_URL: redis://redis:6379/0
+      APPROVAL_REQUIRED_FOR: ${APPROVAL_REQUIRED_FOR:-order_delete,invoice_void}
+    command: >
+      python -m src.worker
+
+volumes:
+  pgdata:

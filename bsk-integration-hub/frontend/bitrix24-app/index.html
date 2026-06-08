@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BSK — синхронизация с МойСклад</title>
+    <!-- Bitrix24 JS SDK (optional). When embedded as a placement widget the
+         deal id is read from BX24.placement.info(); otherwise it is entered
+         manually below. -->
+    <script src="//api.bitrix24.com/api/v1/"></script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="widget">
+      <header>
+        <strong>Синхронизация с МойСклад</strong>
+        <button id="cfg-toggle" class="link">настройки</button>
+      </header>
+
+      <section id="config" class="config hidden">
+        <label>API base</label>
+        <input id="api-base" placeholder="http://localhost:8000" />
+        <label>Admin token</label>
+        <input id="api-token" type="password" placeholder="ADMIN_API_TOKEN" />
+        <button id="save-cfg" class="btn">Сохранить</button>
+        <p class="hint">
+          В реальном встраивании в Bitrix24 авторизация берётся из B24. Здесь токен
+          указывается вручную для демо и хранится в localStorage.
+        </p>
+      </section>
+
+      <section class="deal">
+        <label>ID сделки</label>
+        <div class="row">
+          <input id="deal-id" value="1001" />
+          <button id="sync" class="btn primary">Синхронизировать</button>
+          <button id="refresh" class="btn">Обновить</button>
+        </div>
+      </section>
+
+      <section id="status" class="status"></section>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
