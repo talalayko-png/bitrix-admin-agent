@@ -108,8 +108,9 @@ pytest -q
 
 Запуск на своём сервере (VPS + Docker + Caddy с авто-HTTPS), подключение
 Bitrix24/МойСклад и **безопасный поэтапный** переход к реальным вызовам —
-см. [docs/production.md](./docs/production.md). Обкатка на песочнице (реальные
-чтения + dry-run, без записей) — [docs/sandbox.md](./docs/sandbox.md).
+см. [docs/production.md](./docs/production.md). Деплой на VPS Beget через
+встроенный терминал — [docs/deploy-beget.md](./docs/deploy-beget.md). Обкатка на
+песочнице (реальные чтения + dry-run, без записей) — [docs/sandbox.md](./docs/sandbox.md).
 
 ## Лицензия
 
