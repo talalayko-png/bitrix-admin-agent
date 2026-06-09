@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from src.workflows.base import Workflow
 from src.workflows.contact_to_counterparty import ContactToCounterpartyWorkflow
+from src.workflows.create_supplier_docs import CreateSupplierDocsWorkflow
 from src.workflows.deal_to_order import DealToOrderWorkflow
 from src.workflows.payment_sync import PaymentSyncWorkflow
 from src.workflows.product_sync import ProductSyncWorkflow
@@ -13,6 +14,7 @@ _WORKFLOWS: list[Workflow] = [
     ContactToCounterpartyWorkflow(),
     ProductSyncWorkflow(),
     PaymentSyncWorkflow(),
+    CreateSupplierDocsWorkflow(),
 ]
 
 
