@@ -56,7 +56,9 @@ def _flags() -> dict[str, Any]:
         "real_writes_enabled": s.real_writes_enabled,
         "real_api_enabled": s.real_api_enabled,
         "queue_backend": s.queue_backend,
+        "approval_required": s.approval_required,
         "approval_required_for": sorted(s.approval_required_set),
+        "dangerous_actions_disabled": s.dangerous_actions_disabled,
     }
 
 

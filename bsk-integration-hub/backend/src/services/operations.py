@@ -22,7 +22,7 @@ from src.domain.enums import ExecuteResult, OperationStatus
 from src.logging_conf import get_logger
 from src.queue.enqueue import enqueue_operation
 from src.queue.locks import LockNotAcquired, operation_lock
-from src.services.approval import needs_approval
+from src.services.approval import dangerous_blocked, needs_approval
 from src.services.context import ExecutionContext
 from src.utils.backoff import backoff_delay
 from src.utils.time import utcnow
@@ -48,10 +48,14 @@ class OperationService:
     def create(self, draft: OperationDraft) -> int:
         """Idempotently create an operation. Returns the operation id."""
         settings = get_settings()
+        blocked = dangerous_blocked(settings, draft.type)
         approval = needs_approval(settings, draft.type, draft.requires_approval)
-        status = (
-            OperationStatus.awaiting_approval if approval else OperationStatus.pending
-        )
+        if blocked:
+            status = OperationStatus.blocked
+        elif approval:
+            status = OperationStatus.awaiting_approval
+        else:
+            status = OperationStatus.pending
         try:
             with session_scope() as session:
                 existing = find_operation_by_key(session, draft.idempotency_key)
@@ -67,6 +71,7 @@ class OperationService:
                     requires_approval=approval,
                     max_attempts=settings.worker_max_retries,
                     dry_run=settings.dry_run,
+                    error="dangerous action blocked by policy" if blocked else None,
                 )
                 session.add(op)
                 session.flush()
@@ -74,9 +79,11 @@ class OperationService:
                 session.add(
                     OperationLog(
                         operation_id=op_id,
-                        level="info",
+                        level="warning" if blocked else "info",
                         message=(
-                            f"Operation created (status={status.value}, "
+                            "Operation blocked: dangerous action disabled by policy"
+                            if blocked
+                            else f"Operation created (status={status.value}, "
                             f"dry_run={settings.dry_run})"
                         ),
                     )

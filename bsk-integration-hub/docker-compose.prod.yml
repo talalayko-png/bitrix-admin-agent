@@ -9,7 +9,8 @@
 
 services:
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: ./frontend/admin-panel
     restart: unless-stopped
     depends_on:
       app:

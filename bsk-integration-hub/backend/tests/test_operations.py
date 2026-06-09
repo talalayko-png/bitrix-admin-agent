@@ -64,7 +64,12 @@ def test_approval_gate_via_draft_flag():
         assert op.approved_by == "tester"
 
 
-def test_approval_required_by_type():
+def test_approval_required_by_type(monkeypatch):
+    # order_delete is dangerous; disable that policy here to test the approval gate
+    monkeypatch.setenv("DANGEROUS_ACTIONS_DISABLED", "false")
+    from src.config import reload_settings
+
+    reload_settings()
     svc = OperationService()
     op_id = svc.create_and_enqueue(
         OperationDraft(

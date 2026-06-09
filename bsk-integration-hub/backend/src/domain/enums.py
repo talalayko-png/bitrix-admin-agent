@@ -21,6 +21,7 @@ class OperationStatus(enum.StrEnum):
     failed = "failed"
     cancelled = "cancelled"
     dead = "dead"
+    blocked = "blocked"  # dangerous action disabled by policy
 
     @property
     def is_terminal(self) -> bool:
@@ -28,6 +29,7 @@ class OperationStatus(enum.StrEnum):
             OperationStatus.succeeded,
             OperationStatus.cancelled,
             OperationStatus.dead,
+            OperationStatus.blocked,
         }
 
 
