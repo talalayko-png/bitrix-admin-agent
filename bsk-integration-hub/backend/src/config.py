@@ -55,6 +55,19 @@ class Settings(BaseSettings):
     moysklad_token: str = ""
     moysklad_inbound_webhook_secret: str = ""
 
+    # --- Supplier-docs workflow (Bitrix24 smart process -> MoySklad) ---
+    supplier_docs_entity_type_id: int = 0          # B24 smart-process typeId (0 = any)
+    supplier_docs_target_stage: str = ""           # target stageId ("" = any stage)
+    bitrix24_writeback_purchaseorder_field: str = ""  # B24 UF field for MS purchaseorder id
+    bitrix24_writeback_invoicein_field: str = ""      # B24 UF field for MS invoicein id
+
+    # --- MoySklad defaults & client behavior ---
+    moysklad_default_organization: str = ""        # org name/id (resolved via mapping/lookup)
+    moysklad_default_store: str = ""               # store name/id
+    moysklad_max_retries: int = 4
+    moysklad_backoff_base_seconds: float = 0.5
+    moysklad_page_limit: int = 100
+
     # --- AI assistant (placeholder) ---
     assistant_enabled: bool = False
     assistant_provider: str = ""
