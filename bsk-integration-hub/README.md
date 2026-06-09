@@ -104,6 +104,12 @@ pytest -q
 Все тесты работают **на моках, без сети и без реального Redis** (используется
 `fakeredis` и `QUEUE_BACKEND=sync`).
 
+## Прод-деплой
+
+Запуск на своём сервере (VPS + Docker + Caddy с авто-HTTPS), подключение
+Bitrix24/МойСклад и **безопасный поэтапный** переход к реальным вызовам —
+см. [docs/production.md](./docs/production.md).
+
 ## Лицензия
 
 [MIT](./LICENSE).
