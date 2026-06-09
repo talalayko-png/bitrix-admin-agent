@@ -41,7 +41,7 @@ chmod 600 /root/.ssh/authorized_keys
 
 | Secret | Значение |
 |---|---|
-| `BEGET_SSH_HOST` | `45.67.58.89` (или `hub.bsk-group.ru`) |
+| `BEGET_SSH_HOST` | `45.67.58.89` (или `hub.bsk-grupp.ru`) |
 | `BEGET_SSH_USER` | `root` |
 | `BEGET_SSH_KEY` | **приватный** ключ — всё содержимое файла `deploy_key` |
 | `BEGET_SSH_PORT` | (опц.) `22` или `2222` |
@@ -84,4 +84,4 @@ chmod 600 /root/.ssh/authorized_keys
 
 После настройки секретов нажмите **Actions → Deploy → Run workflow** (ветка
 `main`). В логах должно быть `Deploying to root@…` и в конце `== health ==` с
-ответом `/health`. Затем — `https://hub.bsk-group.ru/health`.
+ответом `/health`. Затем — `https://hub.bsk-grupp.ru/health`.
