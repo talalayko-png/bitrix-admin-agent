@@ -110,6 +110,28 @@ class OperationLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
 
+class ReferenceMapping(Base):
+    """Reference-data mapping between Bitrix24 and MoySklad: products,
+    counterparties/suppliers, stores, organizations, price types / VAT."""
+
+    __tablename__ = "reference_mappings"
+    __table_args__ = (
+        UniqueConstraint("kind", "b24_value", name="uq_reference_mapping"),
+        Index("ix_reference_mappings_kind", "kind"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # kind: product | counterparty | store | organization | pricetype | vat
+    kind: Mapped[str] = mapped_column(String(32))
+    b24_value: Mapped[str] = mapped_column(String(128))  # B24 id or code
+    ms_type: Mapped[str] = mapped_column(String(64))  # MoySklad entity type
+    ms_id: Mapped[str] = mapped_column(String(64))
+    ms_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    meta: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
 class WorkflowConfig(Base):
     __tablename__ = "workflow_configs"
 

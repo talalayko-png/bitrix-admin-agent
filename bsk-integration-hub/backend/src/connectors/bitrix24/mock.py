@@ -48,6 +48,55 @@ class MockBitrix24Client(CallRecorder):
                 "MEASURE": "шт",
             }
         }
+        # smart-process (СПА) items, keyed by item id
+        self._items: dict[str, dict[str, Any]] = {
+            "42": {
+                "id": "42",
+                "title": "Закупка #42",
+                "entityTypeId": "1030",
+                "stageId": "DT1030_10:NEW",
+                "companyId": "77",
+                "assignedById": "7",
+                "opportunity": "50000",
+                "currencyId": "RUB",
+                "ufCrm_PO_ID": "",
+                "ufCrm_INV_ID": "",
+            },
+            # already processed (idempotency): MS purchase order id already written back
+            "43": {
+                "id": "43",
+                "title": "Закупка #43 (обработана)",
+                "entityTypeId": "1030",
+                "stageId": "DT1030_10:NEW",
+                "companyId": "77",
+                "opportunity": "1000",
+                "currencyId": "RUB",
+                "ufCrm_PO_ID": "ms-po-existing",
+                "ufCrm_INV_ID": "ms-inv-existing",
+            },
+        }
+        self._item_products: dict[str, list[dict[str, Any]]] = {
+            "42": [
+                {
+                    "productId": "200",
+                    "productName": "Станок ЧПУ",
+                    "price": "50000",
+                    "quantity": "1",
+                },
+            ],
+            "43": [
+                {
+                    "productId": "200",
+                    "productName": "Станок ЧПУ",
+                    "price": "1000",
+                    "quantity": "1",
+                },
+            ],
+        }
+        self._item_fields: dict[str, dict[str, Any]] = {
+            "ufCrm_PO_ID": {"title": "MS purchase order id", "type": "string"},
+            "ufCrm_INV_ID": {"title": "MS invoice id", "type": "string"},
+        }
 
     def get_deal(self, deal_id: str) -> dict[str, Any]:
         self._record("get_deal", deal_id=deal_id)
@@ -95,3 +144,32 @@ class MockBitrix24Client(CallRecorder):
         # Write path — only reached in real mode (mock just records).
         self._record("update_deal", deal_id=deal_id, fields=fields)
         return {"result": True, "deal_id": str(deal_id)}
+
+    # ---- smart process (СПА) ----
+    def get_item(self, entity_type_id: str, item_id: str) -> dict[str, Any]:
+        self._record("get_item", entity_type_id=entity_type_id, item_id=item_id)
+        item = self._items.get(str(item_id))
+        if item:
+            return dict(item)
+        return {
+            "id": str(item_id),
+            "title": f"Элемент {item_id}",
+            "entityTypeId": str(entity_type_id),
+            "stageId": "",
+            "companyId": "",
+        }
+
+    def get_item_products(self, entity_type_id: str, item_id: str) -> list[dict[str, Any]]:
+        self._record("get_item_products", entity_type_id=entity_type_id, item_id=item_id)
+        return [dict(p) for p in self._item_products.get(str(item_id), [])]
+
+    def get_item_fields(self, entity_type_id: str) -> dict[str, Any]:
+        self._record("get_item_fields", entity_type_id=entity_type_id)
+        return dict(self._item_fields)
+
+    def update_item(
+        self, entity_type_id: str, item_id: str, fields: dict[str, Any]
+    ) -> dict[str, Any]:
+        # Write path — only reached in real (write) mode.
+        self._record("update_item", entity_type_id=entity_type_id, item_id=item_id, fields=fields)
+        return {"item": {"id": str(item_id), **fields}}

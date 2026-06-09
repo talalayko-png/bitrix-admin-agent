@@ -36,9 +36,43 @@ Workflow — это правило, превращающее входящее с
 | `contact_to_counterparty` | `ONCRMCONTACTADD/UPDATE`, `contact.*`        | контрагент (create/update)     |
 | `product_sync`            | `ONCRMPRODUCT*`, `product.*`, `catalog.*`    | товар (create/update)          |
 | `payment_sync`            | `payment.add`, `deal.payment`                | входящий платёж (create)       |
+| `create_supplier_docs`    | `ONCRMDYNAMICITEM*`, `item.*` (смарт-процесс) | заказ поставщику + счёт поставщика (dry-run) |
 
 `payment_sync` намеренно слушает отдельные события оплаты, чтобы не конфликтовать
 с `deal_to_order` на обычном обновлении сделки.
+
+## `create_supplier_docs` и dry-run превью
+
+Процесс из смарт-процесса (СПА) Bitrix24 готовит документы поставщику в МойСклад.
+В **dry-run** (по умолчанию) он ничего не пишет, а формирует подробный предпросмотр
+в `result.after`:
+
+- `received` — что пришло из Б24 (элемент, товарные позиции, доступные поля);
+- `validation` — проверка обязательных полей (`required_ok`);
+- `mappings` — найденные соответствия Б24↔МС (организация, склад, контрагент, товары),
+  с указанием источника (`mapping` — из таблицы соответствий, `lookup` — поиск в МС);
+- `documents` — какие документы и с какими payload’ами были бы созданы
+  (`purchaseorder`, `invoicein`);
+- `writeback` — какие поля были бы записаны обратно в Б24.
+
+Идемпотентность: ключ операции — `entityTypeId + itemId + create_supplier_docs +
+target_stage`; если в элементе Б24 уже заполнены id документов МС, действие — `noop`.
+Приёмка (`supply`) намеренно **не** создаётся — это отдельный будущий процесс.
+
+## Reference-mappings (справочные соответствия)
+
+Постоянные соответствия справочников Б24↔МС (товары, контрагенты, склады,
+организации, типы цен/НДС) хранятся в таблице `reference_mappings` и управляются
+через Admin API:
+
+```
+GET    /api/admin/reference-mappings?kind=product
+POST   /api/admin/reference-mappings   {kind,b24_value,ms_type,ms_id,ms_name?,meta?}
+DELETE /api/admin/reference-mappings/{id}
+```
+
+Workflow сначала ищет соответствие в этой таблице, затем — поиск в МС по
+`externalCode`.
 
 ## Как добавить свой workflow
 

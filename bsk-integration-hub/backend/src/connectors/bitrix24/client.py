@@ -50,8 +50,42 @@ class Bitrix24Client(CallRecorder):
         self._record("get_product", product_id=product_id)
         return self._call("crm.product.get", {"id": product_id}).get("result", {})
 
+    # ---- smart process (СПА) reads ----
+    def get_item(self, entity_type_id: str, item_id: str) -> dict[str, Any]:
+        guard_read(self._settings, "bitrix24.crm.item.get")
+        self._record("get_item", entity_type_id=entity_type_id, item_id=item_id)
+        result = self._call(
+            "crm.item.get", {"entityTypeId": entity_type_id, "id": item_id}
+        ).get("result", {})
+        return result.get("item", result)
+
+    def get_item_products(self, entity_type_id: str, item_id: str) -> list[dict[str, Any]]:
+        guard_read(self._settings, "bitrix24.crm.item.productrow.list")
+        self._record("get_item_products", entity_type_id=entity_type_id, item_id=item_id)
+        result = self._call(
+            "crm.item.productrow.list",
+            {"filter": {"=ownerId": item_id, "=ownerType": f"T{entity_type_id}"}},
+        ).get("result", {})
+        return result.get("productRows", [])
+
+    def get_item_fields(self, entity_type_id: str) -> dict[str, Any]:
+        guard_read(self._settings, "bitrix24.crm.item.fields")
+        self._record("get_item_fields", entity_type_id=entity_type_id)
+        result = self._call("crm.item.fields", {"entityTypeId": entity_type_id}).get("result", {})
+        return result.get("fields", result)
+
     # ---- writes ----
     def update_deal(self, deal_id: str, fields: dict[str, Any]) -> dict[str, Any]:
         guard_write(self._settings, "bitrix24.crm.deal.update")
         self._record("update_deal", deal_id=deal_id, fields=fields)
         return self._call("crm.deal.update", {"id": deal_id, "fields": fields})
+
+    def update_item(
+        self, entity_type_id: str, item_id: str, fields: dict[str, Any]
+    ) -> dict[str, Any]:
+        guard_write(self._settings, "bitrix24.crm.item.update")
+        self._record("update_item", entity_type_id=entity_type_id, item_id=item_id, fields=fields)
+        return self._call(
+            "crm.item.update",
+            {"entityTypeId": entity_type_id, "id": item_id, "fields": fields},
+        )

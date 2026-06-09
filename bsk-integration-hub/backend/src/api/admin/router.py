@@ -18,6 +18,8 @@ from src.api.schemas import (
     MappingOut,
     OperationDetailOut,
     OperationOut,
+    ReferenceMappingIn,
+    ReferenceMappingOut,
     SimulateDealIn,
     SnapshotOut,
     WorkflowOut,
@@ -29,6 +31,7 @@ from src.db import repositories as repo
 from src.db.models import WorkflowConfig
 from src.services.mapping import MappingService
 from src.services.operations import OperationService
+from src.services.reference_mapping import KINDS, ReferenceMappingService
 from src.services.webhooks import WebhookService
 from src.utils.time import utcnow
 from src.workflows.registry import all_workflows, get_workflow
@@ -204,6 +207,39 @@ def create_mapping(body: MappingIn, db: Session = Depends(get_db)) -> MappingOut
 def delete_mapping(mapping_id: int, db: Session = Depends(get_db)) -> None:
     if not MappingService.delete(db, mapping_id):
         raise HTTPException(status_code=404, detail="mapping not found")
+    db.commit()
+
+
+# ----------------------------------------------------- reference mappings
+@router.get("/reference-mappings", response_model=list[ReferenceMappingOut])
+def list_reference_mappings(
+    kind: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> list[ReferenceMappingOut]:
+    rows = ReferenceMappingService.list(db, kind=kind)
+    return [ReferenceMappingOut.model_validate(r) for r in rows]
+
+
+@router.post("/reference-mappings", response_model=ReferenceMappingOut, status_code=201)
+def upsert_reference_mapping(
+    body: ReferenceMappingIn, db: Session = Depends(get_db)
+) -> ReferenceMappingOut:
+    if body.kind not in KINDS:
+        raise HTTPException(
+            status_code=422, detail=f"kind must be one of {sorted(KINDS)}"
+        )
+    row = ReferenceMappingService.upsert(
+        db, body.kind, body.b24_value, body.ms_type, body.ms_id, body.ms_name, body.meta
+    )
+    db.commit()
+    db.refresh(row)
+    return ReferenceMappingOut.model_validate(row)
+
+
+@router.delete("/reference-mappings/{mapping_id}", status_code=204)
+def delete_reference_mapping(mapping_id: int, db: Session = Depends(get_db)) -> None:
+    if not ReferenceMappingService.delete(db, mapping_id):
+        raise HTTPException(status_code=404, detail="reference mapping not found")
     db.commit()
 
 
