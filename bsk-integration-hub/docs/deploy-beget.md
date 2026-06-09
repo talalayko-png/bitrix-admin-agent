@@ -205,6 +205,17 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 Цель — понять, проблема на **сервере**, в **файрволе** или в вашей **локальной сети**.
 
+> **Если SSH с ПК не подключается — сначала запустите серверный скрипт** во
+> встроенном терминале Beget. Он диагностирует SSH и добавляет **запасной порт
+> 2222** (порт 22 при этом не трогает):
+>
+> ```bash
+> cd /opt/bitrix-admin-agent/bsk-integration-hub && git pull && bash scripts/beget-server-diagnostics.sh
+> ```
+>
+> Подробный разбор причин (ping/`kex … timed out`/VPN/Keenetic/провайдер) и
+> проверка по порту 2222 — в [ssh-troubleshooting.md](./ssh-troubleshooting.md).
+
 ## A. Команды на сервере (встроенный терминал Beget)
 
 ```bash
@@ -242,14 +253,16 @@ ufw allow 22/tcp && ufw reload
 # 1) DNS резолвится?
 nslookup hub.bsk-group.ru
 
-# 2) TCP до порта 22 открыт?
+# 2) TCP до порта 22 и запасного 2222 открыт?
 Test-NetConnection SERVER_IP -Port 22
+Test-NetConnection SERVER_IP -Port 2222
 
 # 3) Для сравнения — порт 443 (веб) открыт?
 Test-NetConnection SERVER_IP -Port 443
 
-# 4) Подробный лог подключения ssh:
+# 4) Подробный лог подключения ssh (22 и запасной 2222):
 ssh -v root@SERVER_IP
+ssh -p 2222 root@SERVER_IP
 ```
 
 ## C. Как понять, где проблема
