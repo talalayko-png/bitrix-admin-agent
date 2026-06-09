@@ -29,6 +29,25 @@ class MockBitrix24Client(CallRecorder):
                 {"PRODUCT_NAME": "Доставка", "PRICE": "30000", "QUANTITY": "1"},
             ]
         }
+        self._contacts: dict[str, dict[str, Any]] = {
+            "55": {
+                "ID": "55",
+                "NAME": "Иван",
+                "LAST_NAME": "Петров",
+                "COMPANY_TITLE": "ООО Ромашка",
+                "PHONE": "+7 900 000-00-00",
+                "EMAIL": "ivan@example.com",
+            }
+        }
+        self._products: dict[str, dict[str, Any]] = {
+            "200": {
+                "ID": "200",
+                "NAME": "Станок ЧПУ",
+                "PRICE": "120000",
+                "CURRENCY_ID": "RUB",
+                "MEASURE": "шт",
+            }
+        }
 
     def get_deal(self, deal_id: str) -> dict[str, Any]:
         self._record("get_deal", deal_id=deal_id)
@@ -48,6 +67,29 @@ class MockBitrix24Client(CallRecorder):
     def get_deal_products(self, deal_id: str) -> list[dict[str, Any]]:
         self._record("get_deal_products", deal_id=deal_id)
         return [dict(p) for p in self._deal_products.get(str(deal_id), [])]
+
+    def get_contact(self, contact_id: str) -> dict[str, Any]:
+        self._record("get_contact", contact_id=contact_id)
+        return dict(
+            self._contacts.get(
+                str(contact_id),
+                {"ID": str(contact_id), "NAME": f"Контакт {contact_id}", "LAST_NAME": ""},
+            )
+        )
+
+    def get_product(self, product_id: str) -> dict[str, Any]:
+        self._record("get_product", product_id=product_id)
+        return dict(
+            self._products.get(
+                str(product_id),
+                {
+                    "ID": str(product_id),
+                    "NAME": f"Товар {product_id}",
+                    "PRICE": "0",
+                    "CURRENCY_ID": "RUB",
+                },
+            )
+        )
 
     def update_deal(self, deal_id: str, fields: dict[str, Any]) -> dict[str, Any]:
         # Write path — only reached in real mode (mock just records).
