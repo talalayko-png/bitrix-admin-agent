@@ -3,7 +3,7 @@
 import pytest
 
 from src.config import Settings, get_settings
-from src.connectors.base import EgressBlockedError, guard_egress
+from src.connectors.base import EgressBlockedError, guard_egress, guard_read, guard_write
 
 
 def test_real_api_disabled_by_default():
@@ -29,6 +29,22 @@ def test_all_three_fuses_required():
         assert blocked.real_api_enabled is False
         with pytest.raises(EgressBlockedError):
             guard_egress(blocked, "blocked.call")
+
+
+def test_read_vs_write_split():
+    # 'real reads + dry-run': reads allowed, writes blocked
+    ro = Settings(allow_real_api=True, use_mock_connectors=False, dry_run=True)
+    assert ro.real_reads_enabled is True
+    assert ro.real_writes_enabled is False
+    guard_read(ro, "read")  # must not raise
+    with pytest.raises(EgressBlockedError):
+        guard_write(ro, "write")
+
+    # full safe mode: even reads are blocked
+    safe = Settings()
+    assert safe.real_reads_enabled is False
+    with pytest.raises(EgressBlockedError):
+        guard_read(safe, "read")
 
 
 def test_real_moysklad_client_refuses_to_call():

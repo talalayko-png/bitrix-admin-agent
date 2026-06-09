@@ -59,14 +59,19 @@ export default function Dashboard({ onOpenOperation }: { onOpenOperation: (id: n
         </button>
       </div>
 
-      {f.real_api_enabled ? (
+      {f.real_writes_enabled ? (
         <div className="banner err">
-          ⚠ Включён РЕАЛЬНЫЙ режим: исходящие вызовы к Bitrix24/МойСклад разрешены.
+          ⚠ Включены РЕАЛЬНЫЕ ЗАПИСИ в Bitrix24/МойСклад. Операции изменяют боевые данные.
+        </div>
+      ) : f.real_reads_enabled ? (
+        <div className="banner warn">
+          ◐ Реальные ЧТЕНИЯ + dry-run: данные читаются из Bitrix24/МойСклад, но записи
+          не выполняются (только планируются). Проверьте снимки операций.
         </div>
       ) : (
         <div className="banner safe">
-          ✓ Безопасный режим: dry_run={String(f.dry_run)}, mock-коннекторы=
-          {String(f.use_mock_connectors)}. Реальные вызовы заблокированы.
+          ✓ Безопасный режим: mock-коннекторы, реальных вызовов нет (dry_run=
+          {String(f.dry_run)}).
         </div>
       )}
 

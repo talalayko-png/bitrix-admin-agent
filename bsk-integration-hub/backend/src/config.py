@@ -70,9 +70,22 @@ class Settings(BaseSettings):
         return {x.strip() for x in self.approval_required_for.split(",") if x.strip()}
 
     @property
+    def real_reads_enabled(self) -> bool:
+        """Real *reads* from Bitrix24/MoySklad are allowed when real connectors
+        are on. This permits 'real reads + dry-run' (preview against live data,
+        no writes)."""
+        return self.allow_real_api and not self.use_mock_connectors
+
+    @property
+    def real_writes_enabled(self) -> bool:
+        """Real *writes* additionally require dry-run to be off — i.e. all three
+        fuses agree."""
+        return self.real_reads_enabled and not self.dry_run
+
+    @property
     def real_api_enabled(self) -> bool:
-        """Real outbound calls are allowed ONLY when all three fuses agree."""
-        return self.allow_real_api and not self.use_mock_connectors and not self.dry_run
+        """Backwards-compatible alias: equals ``real_writes_enabled``."""
+        return self.real_writes_enabled
 
     @property
     def is_sqlite(self) -> bool:
