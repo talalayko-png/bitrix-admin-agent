@@ -8,7 +8,10 @@
 # SAFE & IDEMPOTENT. First run is mock + dry-run only:
 #   DRY_RUN=true, USE_MOCK_CONNECTORS=true, ALLOW_REAL_API=false.
 # No real Bitrix24/MoySklad secrets, no real API calls, no write actions.
-# Re-running keeps the existing ADMIN_API_TOKEN and does not clobber .env values.
+# Re-running keeps the existing ADMIN_API_TOKEN but RE-APPLIES the safe defaults
+# (DRY_RUN/USE_MOCK_CONNECTORS/ALLOW_REAL_API). This is a FIRST-deploy bootstrap.
+# For routine updates of an already-configured server use scripts/beget-update.sh
+# or GitHub auto-deploy (docs/auto-deploy.md) — those do NOT modify .env.
 #
 # Overridable via env: DOMAIN, ACME_EMAIL, REPO_URL.
 
