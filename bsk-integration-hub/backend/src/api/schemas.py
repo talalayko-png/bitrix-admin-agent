@@ -71,6 +71,20 @@ class MappingOut(BaseModel):
     created_at: datetime
 
 
+class ReferenceMappingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kind: str
+    b24_value: str
+    ms_type: str
+    ms_id: str
+    ms_name: str | None
+    meta: dict[str, Any] | None
+    created_at: datetime
+    updated_at: datetime
+
+
 class WorkflowOut(BaseModel):
     key: str
     name: str
@@ -105,6 +119,15 @@ class WorkflowUpdateIn(BaseModel):
     enabled: bool | None = None
     config: dict[str, Any] | None = None
     dry_run_override: bool | None = None
+
+
+class ReferenceMappingIn(BaseModel):
+    kind: str
+    b24_value: str
+    ms_type: str
+    ms_id: str
+    ms_name: str | None = None
+    meta: dict[str, Any] | None = None
 
 
 class SimulateDealIn(BaseModel):
