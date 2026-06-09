@@ -1,0 +1,45 @@
+name: Deploy
+
+# Auto-deploy to the Beget VPS on push to main, plus a manual button.
+# Безопасно: при отсутствии секретов job просто пропускается (см. docs/auto-deploy.md).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS (Beget)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy over SSH
+        env:
+          SSH_HOST: ${{ secrets.BEGET_SSH_HOST }}
+          SSH_USER: ${{ secrets.BEGET_SSH_USER }}
+          SSH_PORT: ${{ secrets.BEGET_SSH_PORT }}
+          SSH_KEY: ${{ secrets.BEGET_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SSH_HOST}" ] || [ -z "${SSH_USER}" ] || [ -z "${SSH_KEY}" ]; then
+            echo "::notice::Секреты авто-деплоя не настроены (BEGET_SSH_HOST/USER/KEY) — пропускаю. См. docs/auto-deploy.md"
+            exit 0
+          fi
+          PORT="${SSH_PORT:-22}"
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${SSH_KEY}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${PORT}" "${SSH_HOST}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          echo "Deploying to ${SSH_USER}@${SSH_HOST}:${PORT} ..."
+          ssh -i ~/.ssh/id_deploy -p "${PORT}" \
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new \
+            "${SSH_USER}@${SSH_HOST}" 'bash -s' < bsk-integration-hub/scripts/beget-update.sh
