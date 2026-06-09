@@ -24,6 +24,23 @@ docker compose up --scale worker=3
 Защита от гонок (Redis-лок + `UNIQUE` в БД) делает несколько воркеров
 безопасными — одна операция исполняется только одним воркером.
 
+## Миграции БД (Alembic)
+
+Схема версионируется через Alembic (`backend/alembic/`). В docker-compose
+контейнер `app` перед стартом выполняет `alembic upgrade head`, а `worker`
+ждёт готовности `app` (healthcheck) — гонок при создании схемы нет.
+
+```bash
+cd backend
+alembic upgrade head          # применить миграции
+alembic downgrade -1          # откатить на одну
+alembic revision --autogenerate -m "описание"   # новая миграция из моделей
+```
+
+> Для локальной разработки на SQLite и в тестах схема также может создаваться
+> через `Base.metadata.create_all` (вызывается в `init_db`) — это удобный
+> zero-config путь. Источник истины для прод-схемы — миграции Alembic.
+
 ## Локально без Docker
 
 - БД: SQLite (`DATABASE_URL=sqlite:///./data/app.db`, по умолчанию).

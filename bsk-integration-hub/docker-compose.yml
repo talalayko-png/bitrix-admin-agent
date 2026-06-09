@@ -49,8 +49,12 @@ services:
       APPROVAL_REQUIRED_FOR: ${APPROVAL_REQUIRED_FOR:-order_delete,invoice_void}
     ports:
       - "8000:8000"
-    command: >
-      uvicorn src.main:app --host 0.0.0.0 --port 8000
+    command: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   worker:
     build:
@@ -60,6 +64,8 @@ services:
       redis:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      app:
         condition: service_healthy
     environment:
       APP_ENV: ${APP_ENV:-dev}
