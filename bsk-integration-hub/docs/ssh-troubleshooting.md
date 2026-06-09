@@ -38,7 +38,7 @@ ping **не означает**, что сервер недоступен: SSH р
 
 ## Проверка с Windows (PowerShell)
 
-`SERVER_IP` = `155.212.188.233` (или домен `hub.bsk-group.ru`).
+`SERVER_IP` = `155.212.188.233` (или домен `hub.bsk-grupp.ru`).
 
 ```powershell
 # TCP до стандартного и запасного портов:

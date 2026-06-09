@@ -17,8 +17,8 @@
 
 set -euo pipefail
 
-DOMAIN="${DOMAIN:-hub.bsk-group.ru}"
-ACME_EMAIL="${ACME_EMAIL:-admin@bsk-group.ru}"
+DOMAIN="${DOMAIN:-hub.bsk-grupp.ru}"
+ACME_EMAIL="${ACME_EMAIL:-admin@bsk-grupp.ru}"
 REPO_URL="${REPO_URL:-https://github.com/talalayko-png/bitrix-admin-agent.git}"
 TARGET="/opt/bitrix-admin-agent"
 PROJ="${TARGET}/bsk-integration-hub"
