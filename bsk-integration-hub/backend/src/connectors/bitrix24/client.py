@@ -42,6 +42,14 @@ class Bitrix24Client(CallRecorder):
         self._record("get_deal_products", deal_id=deal_id)
         return self._call("crm.deal.productrows.get", {"id": deal_id}).get("result", [])
 
+    def get_contact(self, contact_id: str) -> dict[str, Any]:
+        self._record("get_contact", contact_id=contact_id)
+        return self._call("crm.contact.get", {"id": contact_id}).get("result", {})
+
+    def get_product(self, product_id: str) -> dict[str, Any]:
+        self._record("get_product", product_id=product_id)
+        return self._call("crm.product.get", {"id": product_id}).get("result", {})
+
     def update_deal(self, deal_id: str, fields: dict[str, Any]) -> dict[str, Any]:
         self._record("update_deal", deal_id=deal_id, fields=fields)
         return self._call("crm.deal.update", {"id": deal_id, "fields": fields})

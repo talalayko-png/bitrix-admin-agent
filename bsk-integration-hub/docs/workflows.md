@@ -28,6 +28,18 @@ Workflow — это правило, превращающее входящее с
   create/update.
 - В dry-run возвращает планируемый заказ и сумму; реальной записи нет.
 
+## Готовые процессы
+
+| Ключ                      | Триггер-события (Б24)                         | Действие в МойСклад            |
+|---------------------------|----------------------------------------------|--------------------------------|
+| `deal_to_order`           | `ONCRMDEALADD/UPDATE`, `deal.add/update`     | заказ покупателя (create/update) |
+| `contact_to_counterparty` | `ONCRMCONTACTADD/UPDATE`, `contact.*`        | контрагент (create/update)     |
+| `product_sync`            | `ONCRMPRODUCT*`, `product.*`, `catalog.*`    | товар (create/update)          |
+| `payment_sync`            | `payment.add`, `deal.payment`                | входящий платёж (create)       |
+
+`payment_sync` намеренно слушает отдельные события оплаты, чтобы не конфликтовать
+с `deal_to_order` на обычном обновлении сделки.
+
 ## Как добавить свой workflow
 
 1. Создайте класс в `src/workflows/your_flow.py`, унаследовав `Workflow`.

@@ -26,6 +26,8 @@ class PlanResult:
     before: dict[str, Any] | None
     after: dict[str, Any] | None
     summary: str
+    # workflow-internal data (e.g. source ids); never sent to the external API
+    meta: dict[str, Any] | None = None
 
 
 class Workflow(ABC):
