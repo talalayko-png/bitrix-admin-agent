@@ -3,6 +3,8 @@ export interface Flags {
   dry_run: boolean
   use_mock_connectors: boolean
   allow_real_api: boolean
+  real_reads_enabled: boolean
+  real_writes_enabled: boolean
   real_api_enabled: boolean
   queue_backend: string
   approval_required_for: string[]

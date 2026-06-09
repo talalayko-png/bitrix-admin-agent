@@ -83,6 +83,15 @@ def test_moysklad_client_offline():
     assert created["externalCode"] == "555"
 
 
+def test_readonly_mode_offline():
+    """Real reads + dry-run: reads succeed, writes are blocked."""
+    ro = _real_settings(dry_run=True)
+    client = MoySkladClient(ro, transport=httpx.MockTransport(_handler))
+    assert client.find_order_by_external("555") is None  # read allowed
+    with pytest.raises(EgressBlockedError):
+        client.create_order({"externalCode": "555"})  # write blocked
+
+
 def test_real_apply_path_offline(monkeypatch):
     """Run the full operation in REAL mode (dry_run off) against MockTransport."""
     monkeypatch.setenv("ALLOW_REAL_API", "true")

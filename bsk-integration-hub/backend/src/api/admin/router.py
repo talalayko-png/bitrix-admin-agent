@@ -49,6 +49,8 @@ def _flags() -> dict[str, Any]:
         "dry_run": s.dry_run,
         "use_mock_connectors": s.use_mock_connectors,
         "allow_real_api": s.allow_real_api,
+        "real_reads_enabled": s.real_reads_enabled,
+        "real_writes_enabled": s.real_writes_enabled,
         "real_api_enabled": s.real_api_enabled,
         "queue_backend": s.queue_backend,
         "approval_required_for": sorted(s.approval_required_set),
