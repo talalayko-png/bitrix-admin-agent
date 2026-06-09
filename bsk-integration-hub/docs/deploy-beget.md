@@ -8,6 +8,22 @@
 > Все команды выполняются во встроенном терминале Beget (обычно под `root`).
 > Если вы не root — добавляйте `sudo` перед docker-командами.
 
+## Быстрый деплой одной командой
+
+Вместо ручного ввода шагов 1–12 можно запустить готовый скрипт (безопасно:
+mock + dry-run, без боевых секретов, идемпотентно). Под `root`:
+
+```bash
+cd /opt && curl -fsSLO https://raw.githubusercontent.com/talalayko-png/bitrix-admin-agent/main/bsk-integration-hub/scripts/beget-deploy.sh && bash beget-deploy.sh
+```
+
+Скрипт сам поставит Docker/утилиты, настроит firewall, клонирует репозиторий,
+создаст `.env` с безопасными значениями, сгенерирует `ADMIN_API_TOKEN` (печатает
+его — сохраните), поднимет сервис с Caddy/HTTPS и проверит `/health`.
+Переопределить домен/почту: `DOMAIN=... ACME_EMAIL=... bash beget-deploy.sh`.
+
+Ниже — те же шаги вручную, если нужен полный контроль.
+
 ---
 
 ## 1. Проверка Docker и docker compose
