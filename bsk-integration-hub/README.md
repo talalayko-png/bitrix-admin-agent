@@ -108,7 +108,8 @@ pytest -q
 
 Запуск на своём сервере (VPS + Docker + Caddy с авто-HTTPS), подключение
 Bitrix24/МойСклад и **безопасный поэтапный** переход к реальным вызовам —
-см. [docs/production.md](./docs/production.md).
+см. [docs/production.md](./docs/production.md). Обкатка на песочнице (реальные
+чтения + dry-run, без записей) — [docs/sandbox.md](./docs/sandbox.md).
 
 ## Лицензия
 

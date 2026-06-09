@@ -92,6 +92,20 @@ def test_readonly_mode_offline():
         client.create_order({"externalCode": "555"})  # write blocked
 
 
+def test_supplier_doc_writes_blocked_in_dry_run():
+    ro = _real_settings(dry_run=True)
+    client = MoySkladClient(ro, transport=httpx.MockTransport(_handler))
+    with pytest.raises(EgressBlockedError):
+        client.create_purchaseorder({"name": "x"})
+
+
+def test_secrets_not_in_recorded_calls():
+    s = _real_settings(moysklad_token="SUPER_SECRET_TOKEN", dry_run=True)
+    client = MoySkladClient(s, transport=httpx.MockTransport(_handler))
+    client.find_order_by_external("555")
+    assert "SUPER_SECRET_TOKEN" not in repr(client.calls)
+
+
 def test_real_apply_path_offline(monkeypatch):
     """Run the full operation in REAL mode (dry_run off) against MockTransport."""
     monkeypatch.setenv("ALLOW_REAL_API", "true")
