@@ -68,6 +68,11 @@ class Settings(BaseSettings):
     moysklad_backoff_base_seconds: float = 0.5
     moysklad_page_limit: int = 100
 
+    # --- Global safety toggles ---
+    approval_required: bool = False           # if true, EVERY operation needs manual approval
+    dangerous_actions_disabled: bool = True   # if true, dangerous op types are blocked entirely
+    app_base_url: str = ""
+
     # --- AI assistant (placeholder) ---
     assistant_enabled: bool = False
     assistant_provider: str = ""
