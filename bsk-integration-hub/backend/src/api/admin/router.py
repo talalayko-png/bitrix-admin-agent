@@ -27,6 +27,7 @@ from src.api.schemas import (
 )
 from src.api.security import require_admin
 from src.config import get_settings
+from src.connectors.factory import build_connectors
 from src.db import repositories as repo
 from src.db.models import WorkflowConfig
 from src.services.mapping import MappingService
@@ -59,6 +60,54 @@ def _flags() -> dict[str, Any]:
         "approval_required": s.approval_required,
         "approval_required_for": sorted(s.approval_required_set),
         "dangerous_actions_disabled": s.dangerous_actions_disabled,
+    }
+
+
+@router.get("/inspect/smart-process")
+def inspect_smart_process(
+    entity_type_id: str = Query(..., description="Bitrix24 smart-process entityTypeId"),
+    item_id: str = Query(..., description="Bitrix24 smart-process item id"),
+) -> dict[str, Any]:
+    """Read a smart-process item, its field definitions, product rows and (if
+    linked) the parent deal — to map Bitrix24 fields to MoySklad documents.
+
+    Read-only: requires real-reads mode to hit the live portal."""
+    settings = get_settings()
+    b24 = build_connectors(settings).bitrix24
+
+    item = b24.get_item(entity_type_id, item_id)
+    fields = b24.get_item_fields(entity_type_id)
+    products = b24.get_item_products(entity_type_id, item_id)
+
+    # Parent deal in Bitrix24 smart processes is exposed as `parentId2`
+    # (2 = deal entityTypeId). Collect all parent links for visibility.
+    parent_links = {
+        k: v for k, v in item.items() if k.lower().startswith("parentid") and v
+    }
+    parent_deal_id = None
+    for k, v in item.items():
+        if k.lower() == "parentid2" and str(v) not in ("", "0"):
+            parent_deal_id = str(v)
+    parent_deal = b24.get_deal(parent_deal_id) if parent_deal_id else None
+
+    # Compact "code | title | value" view for easy field mapping.
+    field_overview = []
+    for code, meta in (fields or {}).items():
+        title = meta.get("title") if isinstance(meta, dict) else None
+        field_overview.append(
+            {"code": code, "title": title, "value": item.get(code)}
+        )
+
+    return {
+        "entity_type_id": entity_type_id,
+        "item_id": item_id,
+        "field_overview": field_overview,
+        "item": item,
+        "fields": fields,
+        "product_rows": products,
+        "parent_links": parent_links,
+        "parent_deal_id": parent_deal_id,
+        "parent_deal": parent_deal,
     }
 
 
