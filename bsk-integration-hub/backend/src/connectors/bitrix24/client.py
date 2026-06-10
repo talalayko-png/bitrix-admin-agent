@@ -40,6 +40,16 @@ class Bitrix24Client(CallRecorder):
         self._record("get_deal_products", deal_id=deal_id)
         return self._call("crm.deal.productrows.get", {"id": deal_id}).get("result", [])
 
+    def get_deal_fields(self) -> dict[str, Any]:
+        guard_read(self._settings, "bitrix24.crm.deal.fields")
+        self._record("get_deal_fields")
+        return self._call("crm.deal.fields", {}).get("result", {})
+
+    def get_company(self, company_id: str) -> dict[str, Any]:
+        guard_read(self._settings, "bitrix24.crm.company.get")
+        self._record("get_company", company_id=company_id)
+        return self._call("crm.company.get", {"id": company_id}).get("result", {})
+
     def get_contact(self, contact_id: str) -> dict[str, Any]:
         guard_read(self._settings, "bitrix24.crm.contact.get")
         self._record("get_contact", contact_id=contact_id)
@@ -62,9 +72,12 @@ class Bitrix24Client(CallRecorder):
     def get_item_products(self, entity_type_id: str, item_id: str) -> list[dict[str, Any]]:
         guard_read(self._settings, "bitrix24.crm.item.productrow.list")
         self._record("get_item_products", entity_type_id=entity_type_id, item_id=item_id)
+        # ownerType динамического типа — "T" + entityTypeId в HEX (1066 -> "T42a"),
+        # см. apidocs.bitrix24.ru: crm/data-types#object_type
+        owner_type = f"T{int(entity_type_id):x}"
         result = self._call(
             "crm.item.productrow.list",
-            {"filter": {"=ownerId": item_id, "=ownerType": f"T{entity_type_id}"}},
+            {"filter": {"=ownerId": item_id, "=ownerType": owner_type}},
         ).get("result", {})
         return result.get("productRows", [])
 

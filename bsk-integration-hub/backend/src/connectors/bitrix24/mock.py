@@ -21,7 +21,12 @@ class MockBitrix24Client(CallRecorder):
                 "CURRENCY_ID": "RUB",
                 "CONTACT_ID": "55",
                 "ASSIGNED_BY_ID": "7",
+                "UF_CRM_SKLAD_MS": "Основной склад",
             }
+        }
+        self._deal_fields: dict[str, Any] = {
+            "TITLE": {"title": "Название", "type": "string"},
+            "UF_CRM_SKLAD_MS": {"title": "Склад МС", "type": "string"},
         }
         self._deal_products: dict[str, list[dict[str, Any]]] = {
             "1001": [
@@ -48,7 +53,8 @@ class MockBitrix24Client(CallRecorder):
                 "MEASURE": "шт",
             }
         }
-        # smart-process (СПА) items, keyed by item id
+        # smart-process (СПА) items, keyed by item id; UF-коды полей — как на
+        # боевом портале (СПА «Снабжение», см. дефолты supplier_docs_field_* в config)
         self._items: dict[str, dict[str, Any]] = {
             "42": {
                 "id": "42",
@@ -59,6 +65,10 @@ class MockBitrix24Client(CallRecorder):
                 "assignedById": "7",
                 "opportunity": "50000",
                 "currencyId": "RUB",
+                "parentId2": "1001",
+                "ufCrm19_1771861585": "2026-06-08T03:00:00+03:00",
+                "ufCrm19_1771861774": "2026-06-09T03:00:00+03:00",
+                "ufCrm19_1771512153": "1021 от 2 июня 2026 г.",
                 "ufCrm_PO_ID": "",
                 "ufCrm_INV_ID": "",
             },
@@ -96,6 +106,18 @@ class MockBitrix24Client(CallRecorder):
         self._item_fields: dict[str, dict[str, Any]] = {
             "ufCrm_PO_ID": {"title": "MS purchase order id", "type": "string"},
             "ufCrm_INV_ID": {"title": "MS invoice id", "type": "string"},
+            "ufCrm19_1771861585": {
+                "title": "Плановая дата готовности у поставщика",
+                "type": "date",
+            },
+            "ufCrm19_1771861774": {"title": "Дата оплаты поставщику", "type": "date"},
+            "ufCrm19_1771512153": {
+                "title": "№ и дата счёта поставщика",
+                "type": "string",
+            },
+        }
+        self._companies: dict[str, dict[str, Any]] = {
+            "77": {"ID": "77", "TITLE": "ООО Поставщик-77"},
         }
 
     def get_deal(self, deal_id: str) -> dict[str, Any]:
@@ -116,6 +138,19 @@ class MockBitrix24Client(CallRecorder):
     def get_deal_products(self, deal_id: str) -> list[dict[str, Any]]:
         self._record("get_deal_products", deal_id=deal_id)
         return [dict(p) for p in self._deal_products.get(str(deal_id), [])]
+
+    def get_deal_fields(self) -> dict[str, Any]:
+        self._record("get_deal_fields")
+        return dict(self._deal_fields)
+
+    def get_company(self, company_id: str) -> dict[str, Any]:
+        self._record("get_company", company_id=company_id)
+        return dict(
+            self._companies.get(
+                str(company_id),
+                {"ID": str(company_id), "TITLE": f"Компания {company_id}"},
+            )
+        )
 
     def get_contact(self, contact_id: str) -> dict[str, Any]:
         self._record("get_contact", contact_id=contact_id)

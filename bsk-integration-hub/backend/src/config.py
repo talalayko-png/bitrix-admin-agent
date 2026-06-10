@@ -60,6 +60,18 @@ class Settings(BaseSettings):
     supplier_docs_target_stage: str = ""           # target stageId ("" = any stage)
     bitrix24_writeback_purchaseorder_field: str = ""  # B24 UF field for MS purchaseorder id
     bitrix24_writeback_invoicein_field: str = ""      # B24 UF field for MS invoicein id
+    bitrix24_writeback_supply_field: str = ""         # B24 UF field for MS supply link
+
+    # UF-коды полей СПА «Снабжение» (портал basht, entityTypeId=1066;
+    # выписаны инспектором с элемента 481) — переопределяются через .env
+    # «Плановая дата готовности у поставщика»
+    supplier_docs_field_ready_date: str = "ufCrm19_1771861585"
+    # «Дата оплаты поставщику»
+    supplier_docs_field_payment_date: str = "ufCrm19_1771861774"
+    # «№ и дата счёта поставщика»
+    supplier_docs_field_invoice_ref: str = "ufCrm19_1771512153"
+    # UF-код поля «Склад МС» в материнской сделке (код уточняется инспектором)
+    supplier_docs_deal_store_field: str = ""
 
     # --- MoySklad defaults & client behavior ---
     moysklad_default_organization: str = ""        # org name/id (resolved via mapping/lookup)

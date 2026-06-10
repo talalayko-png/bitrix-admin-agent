@@ -113,13 +113,35 @@ def inspect_smart_process(
         safe("get_deal", b24.get_deal, parent_deal_id) if parent_deal_id else None
     )
 
-    # Compact "code | title | value" view for easy field mapping.
-    field_overview = []
-    for code, meta in (fields or {}).items():
-        title = meta.get("title") if isinstance(meta, dict) else None
-        field_overview.append(
-            {"code": code, "title": title, "value": item.get(code)}
-        )
+    def overview(defs: dict[str, Any], values: dict[str, Any]) -> list[dict[str, Any]]:
+        """Compact "code | title | value" view for easy field mapping."""
+        return [
+            {
+                "code": code,
+                "title": meta.get("title") if isinstance(meta, dict) else None,
+                "value": values.get(code),
+            }
+            for code, meta in (defs or {}).items()
+        ]
+
+    field_overview = overview(fields, item)
+
+    # Deal field titles (crm.deal.fields) — to locate UF fields like «Склад МС»
+    # in the parent deal by their human-readable names.
+    deal_fields = safe("get_deal_fields", b24.get_deal_fields) if parent_deal else None
+    deal_field_overview = overview(deal_fields or {}, parent_deal or {})
+
+    # Resolve company names so «компания элемента — это поставщик?» can be
+    # answered by looking at the JSON instead of guessing by id.
+    companies: dict[str, Any] = {}
+    for label, cid in (
+        ("item.companyId", (item or {}).get("companyId")),
+        ("parent_deal.COMPANY_ID", (parent_deal or {}).get("COMPANY_ID")),
+    ):
+        if cid and str(cid) not in ("", "0"):
+            company = safe(f"get_company:{label}", b24.get_company, str(cid))
+            if company:
+                companies[label] = {"id": str(cid), "title": company.get("TITLE")}
 
     return {
         "entity_type_id": entity_type_id,
@@ -133,6 +155,8 @@ def inspect_smart_process(
         "parent_links": parent_links,
         "parent_deal_id": parent_deal_id,
         "parent_deal": parent_deal,
+        "deal_field_overview": deal_field_overview,
+        "companies": companies,
     }
 
 
