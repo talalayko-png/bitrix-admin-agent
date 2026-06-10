@@ -71,13 +71,34 @@ def inspect_smart_process(
     """Read a smart-process item, its field definitions, product rows and (if
     linked) the parent deal — to map Bitrix24 fields to MoySklad documents.
 
-    Read-only: requires real-reads mode to hit the live portal."""
+    Read-only: requires real-reads mode to hit the live portal.
+
+    Each Bitrix24 call is isolated: a failure in one (e.g. product rows) is
+    captured under ``errors`` instead of failing the whole request, so the
+    field codes we need for mapping still come through, and the underlying
+    Bitrix24 error text is surfaced as JSON instead of an opaque 500."""
     settings = get_settings()
     b24 = build_connectors(settings).bitrix24
 
-    item = b24.get_item(entity_type_id, item_id)
-    fields = b24.get_item_fields(entity_type_id)
-    products = b24.get_item_products(entity_type_id, item_id)
+    errors: dict[str, str] = {}
+
+    def safe(label: str, fn: Any, *args: Any) -> Any:
+        try:
+            return fn(*args)
+        except Exception as exc:  # surface B24 errors as JSON, never 500
+            detail = str(exc)
+            resp = getattr(exc, "response", None)
+            if resp is not None:
+                try:
+                    detail = f"HTTP {resp.status_code}: {resp.text[:800]}"
+                except Exception:  # pragma: no cover - defensive
+                    pass
+            errors[label] = detail
+            return None
+
+    item = safe("get_item", b24.get_item, entity_type_id, item_id) or {}
+    fields = safe("get_item_fields", b24.get_item_fields, entity_type_id) or {}
+    products = safe("get_item_products", b24.get_item_products, entity_type_id, item_id) or []
 
     # Parent deal in Bitrix24 smart processes is exposed as `parentId2`
     # (2 = deal entityTypeId). Collect all parent links for visibility.
@@ -88,7 +109,9 @@ def inspect_smart_process(
     for k, v in item.items():
         if k.lower() == "parentid2" and str(v) not in ("", "0"):
             parent_deal_id = str(v)
-    parent_deal = b24.get_deal(parent_deal_id) if parent_deal_id else None
+    parent_deal = (
+        safe("get_deal", b24.get_deal, parent_deal_id) if parent_deal_id else None
+    )
 
     # Compact "code | title | value" view for easy field mapping.
     field_overview = []
@@ -101,6 +124,8 @@ def inspect_smart_process(
     return {
         "entity_type_id": entity_type_id,
         "item_id": item_id,
+        "real_reads_enabled": settings.real_reads_enabled,
+        "errors": errors,
         "field_overview": field_overview,
         "item": item,
         "fields": fields,

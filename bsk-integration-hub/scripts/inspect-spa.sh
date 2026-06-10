@@ -22,14 +22,27 @@ echo
 
 curl -s "$URL" -H "Authorization: Bearer ${TOKEN}" | python3 - <<'PY'
 import sys, json
+raw = sys.stdin.read()
 try:
-    d = json.load(sys.stdin)
+    d = json.loads(raw)
 except Exception as e:
-    print("Ответ не похож на JSON:", e); sys.exit(0)
+    print("Ответ не похож на JSON:", e)
+    print("--- сырой ответ сервера ---")
+    print(raw[:1500] if raw.strip() else "(пустой ответ — приложение недоступно на localhost:8000)")
+    sys.exit(0)
 if "field_overview" not in d:
     print(json.dumps(d, ensure_ascii=False, indent=2)); sys.exit(0)
 
-print("=== ПОЛЯ ЭЛЕМЕНТА СПА (код | название | значение) ===")
+print("Режим реальных чтений:", d.get("real_reads_enabled"))
+errs = d.get("errors") or {}
+if errs:
+    print("\n=== ОШИБКИ ВЫЗОВОВ BITRIX24 ===")
+    for where, msg in errs.items():
+        print(f"{where}: {msg}")
+
+print("\n=== ПОЛЯ ЭЛЕМЕНТА СПА (код | название | значение) ===")
+if not d["field_overview"]:
+    print("(поля не получены — см. ошибки выше)")
 for f in d["field_overview"]:
     print(f"{f['code']:<30} | {str(f.get('title') or ''):<42} | {f.get('value')}")
 
