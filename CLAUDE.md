@@ -2,6 +2,9 @@
 
 Guidance for Claude Code when working in this repository.
 
+**Первым делом прочитай `bsk-integration-hub/docs/STATUS.md`** — там текущий
+статус проекта, режим безопасности (боевые доступы, dry-run) и активная задача.
+
 ## Project
 
 **BSK Integration Hub** — интеграционный хаб Bitrix24 ↔ МойСклад. Код проекта
@@ -31,9 +34,11 @@ npm run build                   # прод-сборка
 
 ## Безопасность
 
-В MVP реальных вызовов к Bitrix24/МойСклад нет: предохранители `DRY_RUN`,
-`USE_MOCK_CONNECTORS`, `ALLOW_REAL_API` (см. `SECURITY.md`). Секреты — только в
-`.env` (в `.gitignore`), никогда не коммитить.
+Предохранители: `DRY_RUN`, `USE_MOCK_CONNECTORS`, `ALLOW_REAL_API`
+(см. `SECURITY.md`). На проде подключены **боевые** Bitrix24/МойСклад в режиме
+«реальные чтения + dry-run» — записи запрещены; не включать запись без явного
+подтверждения владельца. Секреты — только в `.env` (в `.gitignore`), никогда
+не коммитить.
 
 ## Рабочий процесс (предпочтения)
 
