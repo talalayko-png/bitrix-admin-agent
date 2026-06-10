@@ -79,6 +79,19 @@ def test_mappings_crud(client, auth):
     assert client.delete(f"/api/admin/mappings/{mid}", headers=auth).status_code == 404
 
 
+def test_inspect_smart_process(client, auth):
+    resp = client.get(
+        "/api/admin/inspect/smart-process?entity_type_id=1030&item_id=42",
+        headers=auth,
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["item"]["id"] == "42"
+    assert isinstance(body["field_overview"], list)
+    assert any(f["code"] == "ufCrm_PO_ID" for f in body["field_overview"])
+    assert body["product_rows"]  # mock item 42 has a product row
+
+
 def test_assistant_placeholder(client, auth):
     resp = client.post(
         "/api/admin/assistant/query", headers=auth, json={"question": "why failed?"}
