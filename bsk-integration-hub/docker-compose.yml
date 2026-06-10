@@ -37,7 +37,8 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       APP_ENV: ${APP_ENV:-dev}
       DRY_RUN: ${DRY_RUN:-true}
@@ -70,7 +71,8 @@ services:
       app:
         condition: service_healthy
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       APP_ENV: ${APP_ENV:-dev}
       DRY_RUN: ${DRY_RUN:-true}
