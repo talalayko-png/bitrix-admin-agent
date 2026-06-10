@@ -80,6 +80,20 @@ export default function Operations({
     }
   }
 
+  // Dry-run preview is fetched on demand and must NOT trigger loadDetail
+  // (which clears `plan`); otherwise the freshly fetched preview disappears.
+  async function runDryRun(id: number) {
+    setBusy(true)
+    setErr('')
+    try {
+      setPlan(await api.dryRun(id))
+    } catch (e) {
+      setErr(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const op = detail?.operation
 
   return (
@@ -188,7 +202,7 @@ export default function Operations({
                 <button
                   className="btn"
                   disabled={busy}
-                  onClick={() => act(async () => setPlan(await api.dryRun(op.id)))}
+                  onClick={() => runDryRun(op.id)}
                 >
                   Dry-run превью
                 </button>
