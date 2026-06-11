@@ -98,6 +98,12 @@ def test_inspect_smart_process(client, auth):
     )
     # company ids are resolved to names (поставщик это или покупатель — видно глазами)
     assert body["companies"]["item.companyId"]["title"] == "ООО Поставщик-77"
+    # enum ids resolve to labels; raw deal field definitions are exposed too
+    delivery = next(
+        f for f in body["deal_field_overview"] if f["code"] == "UF_CRM_DELIVERY"
+    )
+    assert delivery["value_label"] == "ТК"
+    assert "items" in body["deal_fields"]["UF_CRM_DELIVERY"]
 
 
 def test_assistant_placeholder(client, auth):

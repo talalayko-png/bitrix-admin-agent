@@ -22,11 +22,17 @@ class MockBitrix24Client(CallRecorder):
                 "CONTACT_ID": "55",
                 "ASSIGNED_BY_ID": "7",
                 "UF_CRM_SKLAD_MS": "Основной склад",
+                "UF_CRM_DELIVERY": "19335",
             }
         }
         self._deal_fields: dict[str, Any] = {
             "TITLE": {"title": "Название", "type": "string"},
             "UF_CRM_SKLAD_MS": {"title": "Склад МС", "type": "string"},
+            "UF_CRM_DELIVERY": {
+                "title": "Как доставляем",
+                "type": "enumeration",
+                "items": [{"ID": "19335", "VALUE": "ТК"}],
+            },
         }
         self._deal_products: dict[str, list[dict[str, Any]]] = {
             "1001": [

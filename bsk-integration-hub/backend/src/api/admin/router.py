@@ -114,15 +114,31 @@ def inspect_smart_process(
     )
 
     def overview(defs: dict[str, Any], values: dict[str, Any]) -> list[dict[str, Any]]:
-        """Compact "code | title | value" view for easy field mapping."""
-        return [
-            {
+        """Compact "code | title | value" view for easy field mapping.
+
+        For enumeration fields the raw value is an item id — resolve it to the
+        human-readable label (``value_label``) using the field definition."""
+        rows = []
+        for code, meta in (defs or {}).items():
+            value = values.get(code)
+            row: dict[str, Any] = {
                 "code": code,
                 "title": meta.get("title") if isinstance(meta, dict) else None,
-                "value": values.get(code),
+                "value": value,
             }
-            for code, meta in (defs or {}).items()
-        ]
+            items = meta.get("items") if isinstance(meta, dict) else None
+            if items and value not in (None, "", [], "0"):
+                by_id = {
+                    str(i.get("ID")): i.get("VALUE")
+                    for i in items
+                    if isinstance(i, dict)
+                }
+                raw_values = value if isinstance(value, list) else [value]
+                labels = [by_id.get(str(v)) for v in raw_values]
+                if any(labels):
+                    row["value_label"] = labels if isinstance(value, list) else labels[0]
+            rows.append(row)
+        return rows
 
     field_overview = overview(fields, item)
 
@@ -155,6 +171,7 @@ def inspect_smart_process(
         "parent_links": parent_links,
         "parent_deal_id": parent_deal_id,
         "parent_deal": parent_deal,
+        "deal_fields": deal_fields,
         "deal_field_overview": deal_field_overview,
         "companies": companies,
     }
