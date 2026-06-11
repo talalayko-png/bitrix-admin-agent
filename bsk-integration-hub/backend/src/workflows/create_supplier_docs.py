@@ -202,6 +202,11 @@ class CreateSupplierDocsWorkflow(Workflow):
                 "код поля «Склад МС» сделки не настроен (SUPPLIER_DOCS_DEAL_STORE_FIELD) — "
                 "используется склад по умолчанию"
             )
+        elif parent_deal and not store_raw:
+            warnings.append(
+                f"поле «Склад МС» ({store_field}) в сделке пусто — "
+                "используется склад по умолчанию"
+            )
 
         # 2) validation of required fields
         supplier_b24 = str(item.get("companyId") or item.get("COMPANY_ID") or "")

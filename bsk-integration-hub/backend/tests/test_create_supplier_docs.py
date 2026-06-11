@@ -2,6 +2,7 @@ from src.db.base import session_scope
 from src.db.models import Operation
 from src.domain.entities import OperationDraft
 from src.services.operations import OperationService
+from src.services.reference_mapping import ReferenceMappingService
 from src.workflows.create_supplier_docs import b24_date_to_ms, parse_invoice_ref
 
 
@@ -93,10 +94,24 @@ def test_store_resolved_from_parent_deal_field(monkeypatch):
     assert sources["Склад МС (материнская сделка)"]["b24_value"] == "Основной склад"
 
 
+def test_store_resolved_via_reference_mapping():
+    # боевой сценарий: «Склад МС» сделки хранит id элемента списка Б24 (15053),
+    # склад МойСклад подбирается по записи reference-mappings kind=store
+    with session_scope() as s:
+        ReferenceMappingService.upsert(
+            s, "store", "15053", "store", "store-1", "Основной склад"
+        )
+    _, _, result = _run({"entity_type_id": "1030", "item_id": "42"}, key="sd-refstore")
+    store = result["after"]["mappings"]["store"]
+    assert store["source"] == "mapping"
+    assert store["id"] == "store-1"
+
+
 def test_store_falls_back_to_default_with_warning():
+    # без reference-mapping id «15053» в МС не находится -> склад по умолчанию
     _, _, result = _run({"entity_type_id": "1030", "item_id": "42"}, key="sd-defstore")
     assert result["after"]["mappings"]["store"]["source"] == "default"
-    assert any("Склад МС" in w for w in result["after"]["warnings"])
+    assert any("не найден" in w for w in result["after"]["warnings"])
 
 
 def test_dry_run_performs_no_writes():

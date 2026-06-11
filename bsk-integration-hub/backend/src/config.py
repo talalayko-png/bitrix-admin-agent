@@ -70,8 +70,10 @@ class Settings(BaseSettings):
     supplier_docs_field_payment_date: str = "ufCrm19_1771861774"
     # «№ и дата счёта поставщика»
     supplier_docs_field_invoice_ref: str = "ufCrm19_1771512153"
-    # UF-код поля «Склад МС» в материнской сделке (код уточняется инспектором)
-    supplier_docs_deal_store_field: str = ""
+    # «Склад МС» в материнской сделке: iblock_element (список Б24 №193),
+    # значение — id элемента списка; сопоставление со складом МС — через
+    # reference-mappings (kind=store, b24_value=<id элемента>)
+    supplier_docs_deal_store_field: str = "UF_CRM_1695973329"
 
     # --- MoySklad defaults & client behavior ---
     moysklad_default_organization: str = ""        # org name/id (resolved via mapping/lookup)
