@@ -22,12 +22,15 @@ class MockBitrix24Client(CallRecorder):
                 "CONTACT_ID": "55",
                 "ASSIGNED_BY_ID": "7",
                 "UF_CRM_SKLAD_MS": "Основной склад",
+                # как на боевом портале: «Склад МС» хранит id элемента списка Б24
+                "UF_CRM_1695973329": "15053",
                 "UF_CRM_DELIVERY": "19335",
             }
         }
         self._deal_fields: dict[str, Any] = {
             "TITLE": {"title": "Название", "type": "string"},
             "UF_CRM_SKLAD_MS": {"title": "Склад МС", "type": "string"},
+            "UF_CRM_1695973329": {"title": "Склад МС (iblock)", "type": "iblock_element"},
             "UF_CRM_DELIVERY": {
                 "title": "Как доставляем",
                 "type": "enumeration",
