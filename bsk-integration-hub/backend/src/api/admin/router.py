@@ -235,6 +235,11 @@ def get_settings_view() -> dict[str, Any]:
             "organization": s.moysklad_default_organization,
             "store": s.moysklad_default_store,
         },
+        "connections": {
+            "bitrix24_outbound_webhook_url_set": bool(s.bitrix24_outbound_webhook_url),
+            "moysklad_base_url": s.moysklad_base_url,
+            "moysklad_token_set": bool(s.moysklad_token),
+        },
     }
 
 
