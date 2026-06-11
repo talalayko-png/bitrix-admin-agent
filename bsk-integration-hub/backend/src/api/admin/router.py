@@ -220,6 +220,21 @@ def get_settings_view() -> dict[str, Any]:
         "worker_backoff_max_seconds": s.worker_backoff_max_seconds,
         "operation_lock_ttl_seconds": s.operation_lock_ttl_seconds,
         "assistant_enabled": s.assistant_enabled,
+        "supplier_docs": {
+            "entity_type_id": s.supplier_docs_entity_type_id,
+            "target_stage": s.supplier_docs_target_stage,
+            "field_ready_date": s.supplier_docs_field_ready_date,
+            "field_payment_date": s.supplier_docs_field_payment_date,
+            "field_invoice_ref": s.supplier_docs_field_invoice_ref,
+            "deal_store_field": s.supplier_docs_deal_store_field,
+            "writeback_purchaseorder_field": s.bitrix24_writeback_purchaseorder_field,
+            "writeback_invoicein_field": s.bitrix24_writeback_invoicein_field,
+            "writeback_supply_field": s.bitrix24_writeback_supply_field,
+        },
+        "moysklad_defaults": {
+            "organization": s.moysklad_default_organization,
+            "store": s.moysklad_default_store,
+        },
     }
 
 

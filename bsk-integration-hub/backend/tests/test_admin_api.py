@@ -161,3 +161,6 @@ def test_settings_view_has_no_secrets(client, auth):
     assert "admin_api_token" not in body
     assert "moysklad_token" not in body
     assert body["queue_backend"] == "sync"
+    # supplier-docs config is visible (field codes are not secrets)
+    assert body["supplier_docs"]["field_ready_date"] == "ufCrm19_1771861585"
+    assert body["supplier_docs"]["deal_store_field"] == "UF_CRM_1695973329"
