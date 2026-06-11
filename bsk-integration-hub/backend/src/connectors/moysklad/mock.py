@@ -106,6 +106,10 @@ class MockMoySkladClient(CallRecorder):
         self._record("create_invoicein", payload=payload)
         return {"id": new_id(), **payload}
 
+    def create_supply(self, payload: dict[str, Any]) -> dict[str, Any]:
+        self._record("create_supply", payload=payload)
+        return {"id": new_id(), **payload}
+
     # ---- payments ----
     def create_payment(self, payload: dict[str, Any]) -> dict[str, Any]:
         self._record("create_payment", payload=payload)

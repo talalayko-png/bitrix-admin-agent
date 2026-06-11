@@ -204,6 +204,11 @@ class MoySkladClient(CallRecorder):
         self._record("create_invoicein", payload=payload)
         return self._request("POST", "/entity/invoicein", json=payload)
 
+    def create_supply(self, payload: dict[str, Any]) -> dict[str, Any]:
+        guard_write(self._settings, "moysklad.create_supply")
+        self._record("create_supply", payload=payload)
+        return self._request("POST", "/entity/supply", json=payload)
+
     # ---------------------------------------------------------- payments
     def create_payment(self, payload: dict[str, Any]) -> dict[str, Any]:
         guard_write(self._settings, "moysklad.create_payment")

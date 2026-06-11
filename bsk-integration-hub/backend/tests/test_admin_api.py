@@ -90,6 +90,20 @@ def test_inspect_smart_process(client, auth):
     assert isinstance(body["field_overview"], list)
     assert any(f["code"] == "ufCrm_PO_ID" for f in body["field_overview"])
     assert body["product_rows"]  # mock item 42 has a product row
+    # mock item 42 links deal 1001 -> deal fields come back with titles
+    assert body["parent_deal_id"] == "1001"
+    assert any(
+        f["code"] == "UF_CRM_SKLAD_MS" and f["title"] == "Склад МС"
+        for f in body["deal_field_overview"]
+    )
+    # company ids are resolved to names (поставщик это или покупатель — видно глазами)
+    assert body["companies"]["item.companyId"]["title"] == "ООО Поставщик-77"
+    # enum ids resolve to labels; raw deal field definitions are exposed too
+    delivery = next(
+        f for f in body["deal_field_overview"] if f["code"] == "UF_CRM_DELIVERY"
+    )
+    assert delivery["value_label"] == "ТК"
+    assert "items" in body["deal_fields"]["UF_CRM_DELIVERY"]
 
 
 def test_assistant_placeholder(client, auth):
