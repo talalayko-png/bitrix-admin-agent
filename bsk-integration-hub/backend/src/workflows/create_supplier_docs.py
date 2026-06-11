@@ -253,11 +253,18 @@ class CreateSupplierDocsWorkflow(Workflow):
 
         validation = {
             "has_supplier": bool(supplier_b24),
+            # контрагент обязателен в заказе/счёте/приёмке МС — без него не создаём
+            "supplier_resolved": supplier is not None,
             "has_products": bool(rows),
             "has_amount": amount > 0,
             "has_store": store is not None,
         }
         required_ok = all(validation.values())
+        if supplier_b24 and supplier is None:
+            warnings.append(
+                f"контрагент МС для компании Б24 {supplier_b24} не сопоставлен — "
+                "добавьте reference-mapping (kind=counterparty)"
+            )
 
         # какие поля Б24 куда идут в МС (для проверки маппинга владельцем)
         field_sources = [

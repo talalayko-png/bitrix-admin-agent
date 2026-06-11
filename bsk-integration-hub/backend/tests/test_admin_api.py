@@ -120,6 +120,11 @@ def test_moysklad_reference_lookups(client, auth):
 
     assert client.get("/api/admin/moysklad/products", headers=auth).status_code == 422
 
+    cps = client.get(
+        "/api/admin/moysklad/counterparties?search=поставщик", headers=auth
+    ).json()
+    assert cps and cps[0]["id"] == "ms-cp-77"
+
 
 def test_simulate_smart_item_runs_supplier_docs(client, auth):
     resp = client.post(
