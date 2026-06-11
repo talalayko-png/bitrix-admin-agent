@@ -15,7 +15,12 @@ class MockMoySkladClient(CallRecorder):
         self._orders_by_external: dict[str, dict[str, Any]] = orders or {}
         self._counterparties_by_external: dict[str, dict[str, Any]] = {}
         self._products_by_external: dict[str, dict[str, Any]] = {
-            "200": {"id": "ms-prod-200", "name": "Станок ЧПУ", "externalCode": "200"},
+            "200": {
+                "id": "ms-prod-200",
+                "name": "Станок ЧПУ",
+                "externalCode": "200",
+                "code": "K-200",
+            },
         }
         self._organizations: list[dict[str, Any]] = [
             {"id": "org-1", "name": "ООО Моя Компания"},
@@ -88,6 +93,19 @@ class MockMoySkladClient(CallRecorder):
         self._record("find_product_by_external", external_id=external_id)
         product = self._products_by_external.get(str(external_id))
         return dict(product) if product else None
+
+    def find_products_by_code(self, code: str) -> list[dict[str, Any]]:
+        self._record("find_products_by_code", code=code)
+        return [dict(p) for p in self._products_by_external.values() if p.get("code") == code]
+
+    def search_products(self, query: str) -> list[dict[str, Any]]:
+        self._record("search_products", query=query)
+        q = query.lower()
+        return [
+            dict(p)
+            for p in self._products_by_external.values()
+            if q in str(p.get("name", "")).lower()
+        ]
 
     def create_product(self, payload: dict[str, Any]) -> dict[str, Any]:
         self._record("create_product", payload=payload)

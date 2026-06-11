@@ -21,6 +21,7 @@ from src.api.schemas import (
     ReferenceMappingIn,
     ReferenceMappingOut,
     SimulateDealIn,
+    SimulateSmartItemIn,
     SnapshotOut,
     WorkflowOut,
     WorkflowUpdateIn,
@@ -437,6 +438,38 @@ def assistant_query(body: AssistantQueryIn) -> dict[str, Any]:
     }
 
 
+# ----------------------------------------------------- MoySklad references
+@router.get("/moysklad/stores")
+def moysklad_stores() -> list[dict[str, Any]]:
+    """Read-only список складов МС (id + name) — для заполнения
+    reference-mappings (kind=store)."""
+    ms = build_connectors(get_settings()).moysklad
+    return [{"id": s.get("id"), "name": s.get("name")} for s in ms.list_stores()]
+
+
+@router.get("/moysklad/products")
+def moysklad_products(
+    code: str | None = Query(default=None, description="точный код товара МС"),
+    search: str | None = Query(default=None, description="поиск по тексту"),
+) -> list[dict[str, Any]]:
+    """Read-only поиск товаров МС — для заполнения reference-mappings
+    (kind=product)."""
+    if not code and not search:
+        raise HTTPException(status_code=422, detail="pass ?code= or ?search=")
+    ms = build_connectors(get_settings()).moysklad
+    rows = ms.find_products_by_code(code) if code else ms.search_products(search)
+    return [
+        {
+            "id": p.get("id"),
+            "name": p.get("name"),
+            "code": p.get("code"),
+            "article": p.get("article"),
+            "externalCode": p.get("externalCode"),
+        }
+        for p in rows
+    ]
+
+
 # ---------------------------------------------------------------- simulate
 @router.post("/simulate/deal")
 def simulate_deal(body: SimulateDealIn) -> dict[str, Any]:
@@ -449,3 +482,20 @@ def simulate_deal(body: SimulateDealIn) -> dict[str, Any]:
         signature_valid=True,
     )
     return result
+
+
+@router.post("/simulate/smart-item")
+def simulate_smart_item(body: SimulateSmartItemIn) -> dict[str, Any]:
+    """Запустить пайплайн для элемента смарт-процесса (как если бы пришёл
+    вебхук item.update) — основной способ получить dry-run превью документов
+    поставщика по реальному элементу."""
+    return WebhookService().handle(
+        source="bitrix24",
+        event_type=body.event,
+        payload={
+            "entity_type_id": body.entity_type_id,
+            "item_id": body.item_id,
+            "stage_id": body.stage_id,
+        },
+        signature_valid=True,
+    )

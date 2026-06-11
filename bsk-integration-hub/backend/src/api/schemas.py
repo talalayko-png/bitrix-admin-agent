@@ -136,5 +136,12 @@ class SimulateDealIn(BaseModel):
     event: str = "deal.update"
 
 
+class SimulateSmartItemIn(BaseModel):
+    entity_type_id: str = "1066"
+    item_id: str
+    stage_id: str | None = None
+    event: str = "item.update"
+
+
 class AssistantQueryIn(BaseModel):
     question: str = Field(min_length=1)

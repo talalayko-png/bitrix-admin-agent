@@ -183,6 +183,16 @@ class MoySkladClient(CallRecorder):
         self._record("find_product_by_external", external_id=external_id)
         return self._find_by_external("product", external_id)
 
+    def find_products_by_code(self, code: str) -> list[dict[str, Any]]:
+        guard_read(self._settings, "moysklad.find_products_by_code")
+        self._record("find_products_by_code", code=code)
+        return self._list("product", {"filter": f"code={code}"})
+
+    def search_products(self, query: str) -> list[dict[str, Any]]:
+        guard_read(self._settings, "moysklad.search_products")
+        self._record("search_products", query=query)
+        return self._list("product", {"search": query})
+
     def create_product(self, payload: dict[str, Any]) -> dict[str, Any]:
         guard_write(self._settings, "moysklad.create_product")
         self._record("create_product", payload=payload)
