@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -91,6 +92,30 @@ class Settings(BaseSettings):
     assistant_enabled: bool = False
     assistant_provider: str = ""
     assistant_api_key: str = ""
+
+    # ----- validators -----
+    @field_validator(
+        "supplier_docs_target_stage",
+        "supplier_docs_field_ready_date",
+        "supplier_docs_field_payment_date",
+        "supplier_docs_field_invoice_ref",
+        "supplier_docs_deal_store_field",
+        "bitrix24_writeback_purchaseorder_field",
+        "bitrix24_writeback_invoicein_field",
+        "bitrix24_writeback_supply_field",
+        "moysklad_default_organization",
+        "moysklad_default_store",
+        mode="before",
+    )
+    @classmethod
+    def _strip_env_comment(cls, v: object) -> object:
+        """В .env встречаются значения вида `KEY=  # комментарий` — dotenv
+        отдаёт комментарий как значение. Такие значения считаем пустыми."""
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("#"):
+                return ""
+        return v
 
     # ----- derived helpers -----
     @property

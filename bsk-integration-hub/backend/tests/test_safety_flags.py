@@ -59,3 +59,15 @@ def test_flags_exposed_in_dashboard(client, auth):
     flags = client.get("/api/admin/dashboard", headers=auth).json()["flags"]
     assert flags["dangerous_actions_disabled"] is True
     assert flags["approval_required"] is False
+
+
+def test_env_inline_comment_values_treated_as_empty():
+    """`KEY=  # комментарий` в .env не должен превращаться в значение."""
+    from src.config import Settings
+
+    s = Settings(
+        supplier_docs_target_stage='# целевая стадия ("" = любая)',
+        bitrix24_writeback_purchaseorder_field="# UF-поле Б24 для id заказа",
+    )
+    assert s.supplier_docs_target_stage == ""
+    assert s.bitrix24_writeback_purchaseorder_field == ""
