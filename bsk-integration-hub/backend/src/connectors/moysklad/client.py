@@ -172,6 +172,11 @@ class MoySkladClient(CallRecorder):
         self._record("find_counterparty_by_external", external_id=external_id)
         return self._find_by_external("counterparty", external_id)
 
+    def search_counterparties(self, query: str) -> list[dict[str, Any]]:
+        guard_read(self._settings, "moysklad.search_counterparties")
+        self._record("search_counterparties", query=query)
+        return self._list("counterparty", {"search": query})
+
     def create_counterparty(self, payload: dict[str, Any]) -> dict[str, Any]:
         guard_write(self._settings, "moysklad.create_counterparty")
         self._record("create_counterparty", payload=payload)

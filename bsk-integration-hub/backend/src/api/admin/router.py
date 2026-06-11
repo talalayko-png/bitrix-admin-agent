@@ -490,6 +490,24 @@ def moysklad_products(
     ]
 
 
+@router.get("/moysklad/counterparties")
+def moysklad_counterparties(
+    search: str = Query(..., description="поиск по имени/ИНН/коду"),
+) -> list[dict[str, Any]]:
+    """Read-only поиск контрагентов МС — для reference-mappings (kind=counterparty)."""
+    ms = build_connectors(get_settings()).moysklad
+    return [
+        {
+            "id": c.get("id"),
+            "name": c.get("name"),
+            "inn": c.get("inn"),
+            "code": c.get("code"),
+            "externalCode": c.get("externalCode"),
+        }
+        for c in ms.search_counterparties(search)
+    ]
+
+
 # ---------------------------------------------------------------- simulate
 @router.post("/simulate/deal")
 def simulate_deal(body: SimulateDealIn) -> dict[str, Any]:

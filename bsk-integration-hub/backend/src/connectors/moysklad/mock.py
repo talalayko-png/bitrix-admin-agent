@@ -13,7 +13,9 @@ class MockMoySkladClient(CallRecorder):
     def __init__(self, orders: dict[str, dict[str, Any]] | None = None) -> None:
         super().__init__()
         self._orders_by_external: dict[str, dict[str, Any]] = orders or {}
-        self._counterparties_by_external: dict[str, dict[str, Any]] = {}
+        self._counterparties_by_external: dict[str, dict[str, Any]] = {
+            "77": {"id": "ms-cp-77", "name": "ООО Поставщик-77", "externalCode": "77"},
+        }
         self._products_by_external: dict[str, dict[str, Any]] = {
             "200": {
                 "id": "ms-prod-200",
@@ -79,6 +81,15 @@ class MockMoySkladClient(CallRecorder):
         self._record("find_counterparty_by_external", external_id=external_id)
         cp = self._counterparties_by_external.get(str(external_id))
         return dict(cp) if cp else None
+
+    def search_counterparties(self, query: str) -> list[dict[str, Any]]:
+        self._record("search_counterparties", query=query)
+        q = query.lower()
+        return [
+            dict(c)
+            for c in self._counterparties_by_external.values()
+            if q in str(c.get("name", "")).lower()
+        ]
 
     def create_counterparty(self, payload: dict[str, Any]) -> dict[str, Any]:
         self._record("create_counterparty", payload=payload)
