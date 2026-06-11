@@ -80,12 +80,17 @@ class MoySkladClient(CallRecorder):
         params: dict[str, Any] | None = None,
         json: dict[str, Any] | None = None,
     ) -> Any:
+        if not self._base:
+            raise RuntimeError("moysklad: MOYSKLAD_BASE_URL не задан (пустой базовый URL)")
         url = f"{self._base}{path}"
         attempt = 0
         while True:
             attempt += 1
-            with self._client() as client:
-                resp = client.request(method, url, params=params, json=json)
+            try:
+                with self._client() as client:
+                    resp = client.request(method, url, params=params, json=json)
+            except httpx.HTTPError as exc:
+                raise RuntimeError(f"moysklad {method} {path}: {exc}") from exc
             status = resp.status_code
             if status == 429 and attempt <= self._max_retries:
                 self._sleep(self._retry_after(resp, attempt))

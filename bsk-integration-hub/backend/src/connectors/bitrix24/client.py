@@ -23,11 +23,20 @@ class Bitrix24Client(CallRecorder):
         self._transport = transport
 
     def _call(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
+        if not self._base:
+            raise RuntimeError(
+                "bitrix24: BITRIX24_OUTBOUND_WEBHOOK_URL не задан (пустой базовый URL)"
+            )
         url = f"{self._base}/{method}.json"
-        with httpx.Client(timeout=30, transport=self._transport) as client:
-            resp = client.post(url, json=params)
-            resp.raise_for_status()
-            return resp.json()
+        try:
+            with httpx.Client(timeout=30, transport=self._transport) as client:
+                resp = client.post(url, json=params)
+                resp.raise_for_status()
+                return resp.json()
+        except httpx.HTTPStatusError:
+            raise  # содержит url и код ответа; admin-инспектор разбирает .response
+        except httpx.HTTPError as exc:
+            raise RuntimeError(f"bitrix24 {method}: {exc}") from exc
 
     # ---- reads ----
     def get_deal(self, deal_id: str) -> dict[str, Any]:
