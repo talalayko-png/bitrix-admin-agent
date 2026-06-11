@@ -106,6 +106,32 @@ def test_inspect_smart_process(client, auth):
     assert "items" in body["deal_fields"]["UF_CRM_DELIVERY"]
 
 
+def test_moysklad_reference_lookups(client, auth):
+    stores = client.get("/api/admin/moysklad/stores", headers=auth).json()
+    assert {"id": "store-1", "name": "Основной склад"} in stores
+
+    by_code = client.get("/api/admin/moysklad/products?code=K-200", headers=auth).json()
+    assert by_code and by_code[0]["id"] == "ms-prod-200"
+
+    by_search = client.get(
+        "/api/admin/moysklad/products?search=станок", headers=auth
+    ).json()
+    assert by_search and by_search[0]["name"] == "Станок ЧПУ"
+
+    assert client.get("/api/admin/moysklad/products", headers=auth).status_code == 422
+
+
+def test_simulate_smart_item_runs_supplier_docs(client, auth):
+    resp = client.post(
+        "/api/admin/simulate/smart-item",
+        headers=auth,
+        json={"entity_type_id": "1030", "item_id": "42", "stage_id": "S1"},
+    )
+    assert resp.status_code == 200
+    ops = resp.json().get("operations") or resp.json().get("operation_ids") or []
+    assert ops, f"no operations created: {resp.json()}"
+
+
 def test_assistant_placeholder(client, auth):
     resp = client.post(
         "/api/admin/assistant/query", headers=auth, json={"question": "why failed?"}
